@@ -1,4 +1,5 @@
 require './services/data.rb'
+require 'byebug'
 
 def normalize_data(input)
   Services::Data.(input)
