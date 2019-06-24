@@ -31,11 +31,11 @@ module Services
     end
 
     def valid_make?
-      !VALID_MAKES.detect{|valid_make| valid_make.match(/^#{make.downcase}/) }.nil?
+      !match_value(VALID_MAKES, make.downcase).nil?
     end
 
     def valid_model?
-      !VALID_MODELS.detect{|valid_model| valid_model.match(/^#{model.downcase.split(' ')[0]}/) }.nil?
+      !match_value(VALID_MODELS, model.downcase.split(' ')[0]).nil?
     end
 
     def valid_trim?
@@ -52,7 +52,7 @@ module Services
 
     def normalized_make
       if valid_make?
-        VALID_MAKES.detect{|valid_make| valid_make.match(/^#{make.downcase}/) }.capitalize
+        match_value(VALID_MAKES, make.downcase).capitalize
       else
         make
       end
@@ -60,10 +60,14 @@ module Services
 
     def normalized_model
       if valid_model?
-        model.downcase.split(' ')[0].capitalize
+        match_value(VALID_MODELS, model.downcase.split(' ')[0]).capitalize
       else
         model
       end
+    end
+
+    def match_value(collection, value)
+      collection.detect{|valid_attribute| valid_attribute.match(/^#{value}/) }
     end
 
     def normalized_trim
