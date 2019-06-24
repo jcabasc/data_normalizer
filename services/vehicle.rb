@@ -26,20 +26,17 @@ module Services
 
     private
 
-    %w[year trim].each do |attribute|
+    %w[year trim make model].each do |attribute|
       define_method("valid_#{attribute}?") do
-        attr_criteria = send("#{attribute}_criteria")
-        Kernel
-          .const_get("#{self.class}::VALID_#{attribute.upcase}S")
-          .include?(attr_criteria)
-      end
-    end
-
-    %w[make model].each do |attribute|
-      define_method("valid_#{attribute}?") do
-        !send('match_value',
-              Kernel.const_get("#{self.class}::VALID_#{attribute.upcase}S"),
-              send("#{attribute}_criteria")).nil?
+        if %w[year trim].include?(attribute)
+          Kernel
+            .const_get("#{self.class}::VALID_#{attribute.upcase}S")
+            .include?(send("#{attribute}_criteria"))
+        else
+          !send('match_value',
+                Kernel.const_get("#{self.class}::VALID_#{attribute.upcase}S"),
+                send("#{attribute}_criteria")).nil?
+        end
       end
     end
 
