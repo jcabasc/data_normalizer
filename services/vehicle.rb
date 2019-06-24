@@ -26,18 +26,16 @@ module Services
 
     private
 
-    def valid_year?
-      VALID_YEARS.include?(year.to_i)
+    %w{ year trim }.each do |attribute|
+      define_method("valid_#{attribute}?") do
+        Kernel.const_get("#{self.class}::VALID_#{attribute.upcase}S").include?(send("#{attribute}_criteria"))
+      end
     end
 
     %w{ make model }.each do |attribute|
       define_method("valid_#{attribute}?") do
         !send('match_value', Kernel.const_get("#{self.class}::VALID_#{attribute.upcase}S"), send("#{attribute}_criteria")).nil?
       end
-    end
-
-    def valid_trim?
-      VALID_TRIMS.include?(trim.downcase)
     end
 
     def does_model_include_trim?
@@ -47,7 +45,7 @@ module Services
     %w{ make model year }.each do |attribute|
       define_method("normalized_#{attribute}") do
         if send("valid_#{attribute}?")
-          return send("#{attribute}").to_i if attribute == 'year'
+          return send("#{attribute}_criteria") if attribute == 'year'
 
           send('match_value', Kernel.const_get("#{self.class}::VALID_#{attribute.upcase}S"), send("#{attribute}_criteria")).capitalize
         else
@@ -66,12 +64,20 @@ module Services
       trim
     end
 
+    def year_criteria
+      year.to_i
+    end
+
     def make_criteria
       make.downcase
     end
 
     def model_criteria
       model.downcase.split(' ')[0]
+    end
+
+    def trim_criteria
+      trim.downcase
     end
 
     def match_value(collection, value)
