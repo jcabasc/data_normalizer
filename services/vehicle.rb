@@ -30,12 +30,10 @@ module Services
       VALID_YEARS.include?(year.to_i)
     end
 
-    def valid_make?
-      !match_value(VALID_MAKES, make.downcase).nil?
-    end
-
-    def valid_model?
-      !match_value(VALID_MODELS, model.downcase.split(' ')[0]).nil?
+    %w{ make model }.each do |attribute|
+      define_method("valid_#{attribute}?") do
+        !send('match_value', Kernel.const_get("#{self.class}::VALID_#{attribute.upcase}S"), send("#{attribute}_criteria")).nil?
+      end
     end
 
     def valid_trim?
@@ -46,28 +44,16 @@ module Services
       model.split(' ').count > 1
     end
 
-    def normalized_year
-      valid_year? ? year.to_i : year
-    end
+    %w{ make model year }.each do |attribute|
+      define_method("normalized_#{attribute}") do
+        if send("valid_#{attribute}?")
+          return send("#{attribute}").to_i if attribute == 'year'
 
-    def normalized_make
-      if valid_make?
-        match_value(VALID_MAKES, make.downcase).capitalize
-      else
-        make
+          send('match_value', Kernel.const_get("#{self.class}::VALID_#{attribute.upcase}S"), send("#{attribute}_criteria")).capitalize
+        else
+          send("#{attribute}")
+        end
       end
-    end
-
-    def normalized_model
-      if valid_model?
-        match_value(VALID_MODELS, model.downcase.split(' ')[0]).capitalize
-      else
-        model
-      end
-    end
-
-    def match_value(collection, value)
-      collection.detect{|valid_attribute| valid_attribute.match(/^#{value}/) }
     end
 
     def normalized_trim
@@ -79,5 +65,18 @@ module Services
 
       trim
     end
+
+    def make_criteria
+      make.downcase
+    end
+
+    def model_criteria
+      model.downcase.split(' ')[0]
+    end
+
+    def match_value(collection, value)
+      collection.detect{|valid_attribute| valid_attribute.match(/^#{value}/) }
+    end
+
   end
 end
